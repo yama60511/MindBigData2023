@@ -1,0 +1,27 @@
+# ── EEG Conformer — CNN + Transformer ──────────────────────────────
+# Paper: Song et al. (2022)
+# Combines CNN for local feature extraction with Transformer self-attention
+# for global temporal dependency modelling. Strong on long sequences.
+#
+# Override from CLI:
+#   python main.py model=conformer model.lr=1e-4 model.depth=4
+#
+_model_name_: conformer     # Internal key (do not change)
+
+nb_classes: 10              # Number of output classes (digits 0-9)
+channels: 128               # Number of EEG channels
+samples: 500                # Number of time samples per trial
+lr: 2e-4                    # Learning rate → Transformers often need lower LR
+                            # → Try: 1e-4, 2e-4, 5e-4
+
+# ── Architecture ──
+emb_size: 40                # Embedding dimension for transformer tokens
+                            # → Larger = more expressive but slower
+                            # → Try: 20, 40, 80
+depth: 6                    # Number of Transformer encoder layers (blocks)
+                            # → More = deeper attention but risk overfitting
+                            # → Try: 2, 4, 6, 8
+num_heads: 10               # Number of multi-head attention heads
+                            # → Must evenly divide emb_size (40/10 = 4 per head)
+                            # → Try: 5, 8, 10
+dropout: 0.5                # Dropout rate for regularization (0.0 - 1.0)

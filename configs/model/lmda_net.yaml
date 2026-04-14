@@ -1,0 +1,22 @@
+# ── LMDA-Net — Lightweight Multi-Dimensional Attention ─────────────
+# Paper: Miao et al. (2023)
+# EEGNet-like backbone enhanced with channel and temporal attention.
+# Lightweight and efficient — good balance of speed and accuracy.
+#
+# Override from CLI:
+#   python main.py model=lmda_net model.F1=16 model.D=4
+#
+_model_name_: lmda_net      # Internal key (do not change)
+
+nb_classes: 10              # Number of output classes (digits 0-9)
+channels: 128               # Number of EEG channels
+samples: 500                # Number of time samples per trial
+lr: 1e-3                    # Learning rate
+
+# ── Architecture ──
+F1: 8                       # Number of temporal filters
+                            # → Try: 4, 8, 16
+D: 2                        # Depth multiplier for spatial convolution
+F2: 16                      # Number of pointwise filters (typically F1 × D)
+kern_len: 125               # Temporal kernel length (= sfreq // 2)
+dropout: 0.5                # Dropout rate for regularization

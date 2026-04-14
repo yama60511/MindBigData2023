@@ -1,0 +1,25 @@
+# ── DGCNN — Dynamical Graph Convolutional Neural Network ───────────
+# Paper: Song et al. (2018)
+# Uses graph convolutions on EEG channel topology.
+# NOTE: Automatically receives Differential Entropy (DE) features
+#       instead of raw time-series (handled by main.py).
+#
+# Override from CLI:
+#   python main.py model=dgcnn model.hidden_dim=64 model.n_layers=3
+#
+_model_name_: dgcnn         # Internal key (do not change)
+
+nb_classes: 10              # Number of output classes (digits 0-9)
+n_channels: 128             # Number of EEG channels (= graph nodes)
+in_features: 5              # Input features per channel = 5 frequency bands (DE)
+                            # → delta, theta, alpha, beta, gamma
+                            # → Do NOT change unless you modify preprocessing
+lr: 1e-3                    # Learning rate
+
+# ── Architecture ──
+hidden_dim: 32              # Hidden dimension in graph convolution layers
+                            # → Try: 16, 32, 64, 128
+n_layers: 2                 # Number of graph convolution layers
+                            # → More layers = larger receptive field on the graph
+                            # → Try: 1, 2, 3
+dropout: 0.5                # Dropout rate for regularization

@@ -1,0 +1,25 @@
+# EEG datasets — mount via volume instead
+data/
+
+# Model checkpoints, W&B logs, Hydra outputs
+outputs/
+wandb/
+
+# Python virtual environments
+.venv/
+venv/
+env/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
+# Editor / OS
+.git/
+.env
+.vscode/
+.idea/
+*.DS_Store

@@ -1,0 +1,21 @@
+# ── TSception — Multi-scale Temporal-Spatial CNN ────────────────────
+# Paper: Ding et al. (2022)
+# Uses multiple temporal kernels of different scales simultaneously,
+# combined with asymmetric spatial filtering for brain lateralization.
+#
+# Override from CLI:
+#   python main.py model=tsception model.F1=15 model.dropout=0.3
+#
+_model_name_: tsception     # Internal key (do not change)
+
+nb_classes: 10              # Number of output classes (digits 0-9)
+channels: 128               # Number of EEG channels
+samples: 500                # Number of time samples per trial
+sfreq: 250                  # Sampling frequency (Hz) — used to compute kernel sizes
+lr: 1e-3                    # Learning rate
+
+# ── Architecture ──
+F1: 9                       # Number of temporal filters per scale
+                            # → Internally creates kernels at multiple time scales
+                            # → Try: 5, 9, 15
+dropout: 0.5                # Dropout rate for regularization

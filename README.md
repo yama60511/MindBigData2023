@@ -1,58 +1,146 @@
-# MindBigData 2023
+# MindBigData2023 — Brain-Computer Interface Challenge
+
+A modular deep learning pipeline for classifying 10 digits (0–9) from 128-channel EEG signals using CNNs, Transformers, and Graph Neural Networks.
+
+Built with **PyTorch Lightning** for training loops, **Hydra** for configuration management, and **W&B** for experiment tracking.
+
+---
+
+## Supported Architectures
+
+| Model | Type |
+|-------|------|
+| **EEGNet** | CNN — lightweight baseline |
+| **CTNet** | CNN + Transformer hybrid |
+| **Conformer** | Transformer adapted for EEG |
+| **ATCNet** | TCN + sliding-window attention |
+| **LMDA-Net** | CNN + multi-dimensional attention |
+| **TSception** | Multi-scale CNN |
+| **DGCNN** | Graph Neural Network (dynamic topology) |
+| **RS-STGCN** | Graph Neural Network (regional-synergy) |
+
+---
 
 ## Environment Setup
 
-### Requirements
+### Prerequisites
+- [Docker](https://docs.docker.com/get-docker/) with [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html)
+- NVIDIA GPU with CUDA support
 
-- Docker with [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html)
-- WSL2 (Windows Subsystem for Linux)
-- NVIDIA GPU
-
-### Run Jupyter and Terminal Together (Recommended)
-
-Start Jupyter in a detached container:
-
+### 1. Clone the repository
 ```bash
-docker run --gpus all -d --rm \
-  --name mbd2023 \
-  -v $(pwd):/workspace \
-  -p 8888:8888 \
-  -w /workspace \
-  nvcr.io/nvidia/pytorch:26.02-py3 \
-  jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root
+git clone https://github.com/yourusername/MindBigData2023.git
+cd MindBigData2023
 ```
 
-The dataset will be downloaded to `data/` inside the project folder on first run and reused on subsequent runs.
-
-Get the login URL/token from logs:
-
+### 2. Configure W&B API key
+Create a `.env` file in the project root (this file is gitignored):
 ```bash
-docker logs -f mbd2023
+echo "WANDB_API_KEY=your_api_key_here" > .env
 ```
+Get your API key from https://wandb.ai/authorize.
 
-Open an interactive shell in the same running container:
+### 3. Build and launch the Docker container
+```bash
+docker compose up -d
+```
+This will:
+- Build the image (`mbd2023-dev`) with all dependencies pre-installed
+- Mount the project at `/workspace`
+- Load your W&B API key from `.env`
+- Start JupyterLab at http://localhost:8888
 
+The container is named `mbd2023`.
+
+**Access JupyterLab:**
+```bash
+docker logs mbd2023 2>&1 | grep "http://127.0.0.1"
+```
+Open the URL with the token in your browser (e.g. `http://127.0.0.1:8888/lab?token=...`).
+
+**Access the container terminal:**
 ```bash
 docker exec -it mbd2023 bash
 ```
 
-Stop the container when done:
-
+**Stop the container:**
 ```bash
-docker stop mbd2023
+docker compose down
 ```
 
-### Docker Image
-
-| Image | Version |
-|-------|---------|
-| `nvcr.io/nvidia/pytorch` | `26.02-py3` |
-
-## Install Dependencies
-
-After opening a shell in the running container, install dependencies:
-
+### 4. Download the dataset
 ```bash
-python -m pip install --upgrade pip
-pip install -r requirements.txt
+docker exec mbd2023 python scripts/data/download/download_data.py
 ```
+
+### 5. Build the preprocessed HDF5 dataset
+Run these scripts in order:
+```bash
+# Step 1 — chunk raw CSV by recording date
+docker exec mbd2023 python scripts/data/preprocess/chunk_by_date.py
+
+# Step 2 — scale EEG to µV, extract digit-only rows, split train/val/test
+docker exec mbd2023 python scripts/data/preprocess/build_digits_scaled.py
+
+# Step 3 — apply 1–40 Hz bandpass filter (final training-ready data)
+docker exec mbd2023 python scripts/data/preprocess/build_digits_filtered.py
+```
+
+Output: `data/processed/digits_1_40hz/{train,val,test}.h5` (88,954 / 31,046 / 20,000 samples)
+
+---
+
+## Training
+
+All commands are run inside the Docker container. The entry point is `main.py`, driven entirely by Hydra.
+
+### Default run (EEGNet)
+```bash
+docker exec mbd2023 python main.py
+```
+
+### Switch model
+```bash
+docker exec mbd2023 python main.py model=conformer
+```
+
+### Override hyperparameters
+```bash
+docker exec mbd2023 python main.py model=atcnet model.lr=5e-4 trainer.max_epochs=100
+```
+
+### Transformer warmup (recommended for Conformer, ATCNet, CTNet)
+```bash
+docker exec mbd2023 python main.py model=conformer trainer.warmup_epochs=5
+```
+
+### Multi-run sweep
+```bash
+docker exec mbd2023 python main.py --multirun model=eegnet,conformer,atcnet,lmda_net,tsception,ctnet
+```
+
+### Benchmark all 8 models (100 epochs each)
+```bash
+bash scripts/experiment/run_preliminary_experiments.sh
+```
+
+### Quick sanity check
+```bash
+docker exec mbd2023 python main.py trainer.fast_dev_run=true
+```
+
+### Disable W&B
+```bash
+docker exec mbd2023 python main.py wandb.enabled=false
+```
+
+Outputs are saved to `outputs/<model_name>/<timestamp>/` with checkpoints, Hydra config snapshots, and W&B local files.
+
+---
+
+## Notes
+
+- **W&B logging**: All runs are logged to the `MindBigData2023` W&B project by default. Disable with `wandb.enabled=false`.
+- **W&B re-auth**: If W&B loses authentication, run `docker exec -it mbd2023 wandb login` inside the container.
+- **GPU memory**: If you get CUDA out-of-memory errors, reduce `data.batch_size` (e.g. `data.batch_size=32`).
+- **Data workers**: `num_workers=0` is safest in Docker. Increase if you have sufficient shared memory.

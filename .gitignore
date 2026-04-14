@@ -1,9 +1,11 @@
 # Data
-data/raw/
-data/interim/**/*.h5
-data/processed/**/*.h5
-data/processed/**/*.json
-!**/.gitkeep
+data/
+
+# Outputs
+outputs/
+
+# Optuna
+optuna_studies/
 
 # Python
 __pycache__/
