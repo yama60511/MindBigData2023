@@ -1,0 +1,19 @@
+# ── CTNet Large — Scaled for H100 ──────────────────────────────────
+_model_name_: ctnet
+
+nb_classes: 10
+channels: 128
+samples: 500
+lr: 3e-4
+
+# ── CNN Front-end (scaled up) ──
+F1: 64
+D: 2
+F2: 128
+kern_len: 125
+
+# ── Transformer Back-end (scaled up) ──
+n_heads: 8
+depth: 4
+ff_dim: 512
+dropout: 0.3

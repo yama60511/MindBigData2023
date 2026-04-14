@@ -1,0 +1,12 @@
+# ── TSception Large — Scaled for H100 ──────────────────────────────
+_model_name_: tsception
+
+nb_classes: 10
+channels: 128
+samples: 500
+sfreq: 250
+lr: 3e-4
+
+# ── Architecture (scaled up) ──
+F1: 54
+dropout: 0.3

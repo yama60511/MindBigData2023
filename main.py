@@ -224,6 +224,8 @@ def main(cfg: DictConfig) -> None:
     trainer = pl.Trainer(
         max_epochs=cfg.trainer.max_epochs,
         accelerator=cfg.trainer.accelerator,
+        devices=cfg.trainer.get("devices", "auto"),
+        strategy=cfg.trainer.get("strategy", "auto"),
         callbacks=callbacks,
         logger=logger,
         deterministic=cfg.trainer.deterministic,

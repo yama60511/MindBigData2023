@@ -1,0 +1,14 @@
+# ── EEGNet TSUBAME — Scaled for H100 x4 ─────────────────────────────────
+_model_name_: eegnet
+
+nb_classes: 10
+channels: 128
+samples: 500
+lr: 3e-4
+
+# ── Architecture (scaled up) ──
+F1: 64
+D: 2
+F2: 128
+kern_len: 125
+dropout: 0.5

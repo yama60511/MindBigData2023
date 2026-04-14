@@ -1,0 +1,13 @@
+# ── RS-STGCN Large — Scaled for H100 ───────────────────────────────
+_model_name_: rs_stgcn
+
+nb_classes: 10
+n_channels: 128
+in_features: 5
+lr: 3e-4
+
+# ── Architecture (scaled up) ──
+regional_dim: 256
+spatial_dim: 256
+n_regions: 5
+dropout: 0.3
