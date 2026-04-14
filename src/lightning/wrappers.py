@@ -3,8 +3,6 @@
 This module isolates all PyTorch Lightning boilerplate logic securely
 away from the pure mathematical PyTorch network definitions.
 """
-from __future__ import annotations
-
 from models import (
     EEGNet, EEGConformer, ATCNet, DGCNN,
     RSSTGCN, LMDANet, TSception, CTNet

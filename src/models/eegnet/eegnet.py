@@ -38,8 +38,6 @@ Head
   Flatten → Linear(F2 * T', nb_classes)
   where T' = floor(floor(T / 4) / 8)
 """
-from __future__ import annotations
-
 import torch
 import torch.nn as nn
 import pytorch_lightning as pl

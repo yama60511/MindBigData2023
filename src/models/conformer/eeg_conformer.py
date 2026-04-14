@@ -17,8 +17,6 @@ TransformerEncoder (nn.TransformerEncoder, pre-norm)
 ClassificationHead
   Flatten → FC layers → nb_classes
 """
-from __future__ import annotations
-
 import torch
 import torch.nn as nn
 

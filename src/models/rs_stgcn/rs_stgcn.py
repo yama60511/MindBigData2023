@@ -29,8 +29,6 @@ Fusion & Classification
 NOTE: This model expects DE features as input, not raw time-series.
       Use DEFeatureTransform from data.transforms.
 """
-from __future__ import annotations
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F

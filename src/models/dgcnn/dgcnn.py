@@ -25,8 +25,6 @@ Classifier
 NOTE: This model expects Differential Entropy (DE) features as input,
       NOT raw time-series. Use DEFeatureTransform from data.transforms.
 """
-from __future__ import annotations
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F

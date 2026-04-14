@@ -234,19 +234,17 @@ def main(cfg: DictConfig) -> None:
     # ------------------------------------------------------------------
     # Fit → Test
     # ------------------------------------------------------------------
-    log.info("Starting training...")
-    trainer.fit(model, dm)
+    try:
+        log.info("Starting training...")
+        trainer.fit(model, dm)
 
-    if not cfg.trainer.fast_dev_run:
-        log.info("Running test evaluation...")
-        trainer.test(model, dm, ckpt_path="best")
-
-    # ------------------------------------------------------------------
-    # Finalize
-    # ------------------------------------------------------------------
-    if cfg.wandb.enabled and isinstance(logger, WandbLogger):
-        import wandb
-        wandb.finish()
+        if not cfg.trainer.fast_dev_run:
+            log.info("Running test evaluation...")
+            trainer.test(model, dm, ckpt_path="best")
+    finally:
+        if cfg.wandb.enabled and isinstance(logger, WandbLogger):
+            import wandb
+            wandb.finish()
 
     log.info("Done! Outputs saved to: %s", os.getcwd())
 

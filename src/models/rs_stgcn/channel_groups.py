@@ -10,8 +10,6 @@ on standard anatomical correspondences.
 
 If the actual montage differs, update the `_GSN128_GROUPS` dictionary.
 """
-from __future__ import annotations
-
 
 # Regional groups for ~128-channel GSN layout (0-indexed channel numbers).
 # Grouped by scalp region based on standard EGI GSN-128 electrode positions.

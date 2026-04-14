@@ -29,8 +29,6 @@ Transformer Encoder (lightweight)
 Classification
   Global average pool over tokens → FC → nb_classes
 """
-from __future__ import annotations
-
 import torch
 import torch.nn as nn
 import pytorch_lightning as pl

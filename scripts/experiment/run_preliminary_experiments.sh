@@ -9,10 +9,11 @@ echo ""
 
 docker exec mbd2023 bash -c "python main.py --multirun \
     model=eegnet,conformer,atcnet,dgcnn,rs_stgcn,lmda_net,tsception,ctnet \
-    model.lr=1e-3 \
+    model.lr=4e-4 \
     trainer.max_epochs=100 \
+    trainer.patience=20 \
     wandb.enabled=true \
-    experiment.name='baseline_100ep_lr1e-3'"
+    experiment.name='baseline'"
 
 echo ""
 echo "=========================================================="

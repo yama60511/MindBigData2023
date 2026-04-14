@@ -9,8 +9,6 @@ Supported schedulers : ReduceLROnPlateau, CosineAnnealingLR, StepLR, None
 Warmup              : Optional linear warmup (recommended for Transformers)
 """
 
-from __future__ import annotations
-
 import torch
 import torch.nn as nn
 

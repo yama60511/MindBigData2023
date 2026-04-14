@@ -29,6 +29,7 @@ env/
 # IDE
 .vscode/
 .idea/
+261_22158_340-pycharm-support-libs/
 
 # OS
 .DS_Store
