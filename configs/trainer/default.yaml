@@ -20,7 +20,7 @@ deterministic: true       # true = fully reproducible results (slightly slower)
 # Available: "Adam", "AdamW", "SGD"
 #
 # Override from CLI:  python main.py trainer.optimizer=AdamW
-optimizer: "Adam"
+optimizer: "AdamW"
   # Adam   — good all-purpose default, fast convergence
   # AdamW  — Adam + proper weight decay (better generalization)
   # SGD    — classic optimizer, often best with careful LR tuning
@@ -30,7 +30,7 @@ optimizer: "Adam"
 # Available: "ReduceLROnPlateau", "CosineAnnealingLR", "StepLR", "None"
 #
 # Override from CLI:  python main.py trainer.scheduler=CosineAnnealingLR
-scheduler: "ReduceLROnPlateau"
+scheduler: "CosineAnnealingLR"
   # ReduceLROnPlateau — halves LR when val_acc stalls for 5 epochs (adaptive)
   # CosineAnnealingLR — smoothly decays LR following a cosine curve
   # StepLR            — drops LR by 50% every 20 epochs (fixed schedule)
@@ -41,4 +41,4 @@ scheduler: "ReduceLROnPlateau"
 # Recommended for Transformer models (Conformer, CTNet, ATCNet).
 #
 # Override from CLI:  python main.py trainer.warmup_epochs=5
-warmup_epochs: 0          # 0 = disabled, 5-10 recommended for Transformers
+warmup_epochs: 10         # 0 = disabled, 5-10 recommended for Transformers

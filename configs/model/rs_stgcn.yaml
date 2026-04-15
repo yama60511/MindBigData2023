@@ -2,8 +2,7 @@
 # Paper: Yunqi et al. (2025)
 # Groups EEG channels into brain regions and learns spatial-temporal
 # dependencies with graph convolutions.
-# NOTE: Automatically receives Differential Entropy (DE) features
-#       instead of raw time-series (handled by main.py).
+# Requires DE features — declared here so Hydra sets preprocessing automatically.
 #
 # Override from CLI:
 #   python main.py model=rs_stgcn model.n_regions=8 model.spatial_dim=64
@@ -13,14 +12,14 @@ _model_name_: rs_stgcn      # Internal key (do not change)
 nb_classes: 10              # Number of output classes (digits 0-9)
 n_channels: 128             # Number of EEG channels (= graph nodes)
 in_features: 5              # Input features per channel = 5 frequency bands (DE)
-lr: 1e-3                    # Learning rate
+lr: 3e-4                    # Learning rate
 
 # ── Architecture ──
-regional_dim: 32            # Embedding dimension for regional features
-                            # → Try: 16, 32, 64
-spatial_dim: 32             # Embedding dimension for spatial features
-                            # → Try: 16, 32, 64
+regional_dim: 128           # Embedding dimension for regional features
+                            # → Try: 32, 64, 128, 256
+spatial_dim: 128            # Embedding dimension for spatial features
+                            # → Try: 32, 64, 128, 256
 n_regions: 5                # Number of brain regions to cluster channels into
                             # → Try: 3, 5, 8, 10
                             # → More regions = finer spatial granularity
-dropout: 0.5                # Dropout rate for regularization
+dropout: 0.1                # Dropout rate for regularization

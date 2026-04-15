@@ -12,10 +12,10 @@ nb_classes: 10              # Number of output classes (digits 0-9)
 channels: 128               # Number of EEG channels
 samples: 500                # Number of time samples per trial
 sfreq: 250                  # Sampling frequency (Hz) — used to compute kernel sizes
-lr: 1e-3                    # Learning rate
+lr: 3e-4                    # Learning rate
 
 # ── Architecture ──
-F1: 9                       # Number of temporal filters per scale
+F1: 27                      # Number of temporal filters per scale
                             # → Internally creates kernels at multiple time scales
-                            # → Try: 5, 9, 15
-dropout: 0.5                # Dropout rate for regularization
+                            # → Try: 9, 18, 27, 54
+dropout: 0.1                # Dropout rate for regularization

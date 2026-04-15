@@ -1,0 +1,22 @@
+# ── Hydra Runtime — Sweep ─────────────────────────────────────────
+# Output layout optimized for --multirun hyperparameter sweeps.
+# All sweep runs grouped under a single timestamped sweep directory.
+#
+# Usage:  python main.py --multirun hydra=sweep model=eegnet,conformer
+
+# @package hydra
+
+job:
+  chdir: true
+
+run:
+  dir: outputs/sweep/${model._model_name_}/${now:%Y-%m-%d_%H-%M-%S}
+
+sweep:
+  dir: outputs/sweep/multirun/${now:%Y-%m-%d_%H-%M-%S}
+  subdir: ${model._model_name_}-${hydra.job.num}
+
+job_logging:
+  handlers:
+    file:
+      filename: ${hydra.runtime.output_dir}/train.log

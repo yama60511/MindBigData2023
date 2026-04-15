@@ -1,0 +1,22 @@
+# ── Hydra Runtime — Debug ─────────────────────────────────────────
+# Flat output layout for quick debugging runs.
+# All debug outputs land in outputs/debug/ — easy to find and clean up.
+#
+# Usage:  python main.py hydra=debug trainer.fast_dev_run=true wandb=disabled
+
+# @package hydra
+
+job:
+  chdir: true
+
+run:
+  dir: outputs/debug/${now:%Y-%m-%d_%H-%M-%S}
+
+sweep:
+  dir: outputs/debug/multirun/${now:%Y-%m-%d_%H-%M-%S}
+  subdir: ${hydra.job.num}
+
+job_logging:
+  handlers:
+    file:
+      filename: ${hydra.runtime.output_dir}/train.log

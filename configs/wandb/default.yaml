@@ -1,0 +1,15 @@
+# ── Weights & Biases — Default Configuration ──────────────────────
+# Full W&B logging with gradient tracking.
+# Dashboard: https://wandb.ai/  (requires `wandb login` inside Docker)
+#
+# Switch from CLI:  python main.py wandb=default (default)
+
+enabled: true
+project: ${experiment.project}
+name: null              # Run display name (auto = model name if null)
+tags: []                # Searchable tags, e.g. ["ablation", "high-lr"]
+notes: ""               # Free-text description of this run
+log_model: false        # true = upload .ckpt files to W&B (uses storage quota)
+watch_model: true       # true = log model architecture & gradient histograms
+watch_log: gradients    # "gradients", "parameters", "all", or null
+watch_freq: 100         # Log gradients every N training batches

@@ -3,59 +3,34 @@
 # MindBigData2023 — Main Hydra Configuration
 # ===========================================
 #
-# This is the ROOT config file. Hydra merges it with the defaults
-# listed below (model, data, trainer). You can override ANY value
-# from the command line without editing files:
+# Config groups (swap any from CLI):
+#   model        → configs/model/*.yaml         (which architecture)
+#   data         → configs/data/*.yaml          (dataset & loading)
+#   preprocessing→ configs/preprocessing/*.yaml (transforms applied to EEG)
+#   trainer      → configs/trainer/*.yaml       (epochs, optimizer, hardware)
+#   wandb        → configs/wandb/*.yaml         (experiment tracking)
+#   hydra        → configs/hydra/*.yaml         (output directory layout)
 #
-#   python main.py model=conformer                           # switch model
-#   python main.py model.lr=5e-4                             # change learning rate
-#   python main.py trainer.max_epochs=200 data.batch_size=32 # change training params
-#   python main.py --multirun model=eegnet,conformer,atcnet  # train multiple models
-#   python main.py wandb.enabled=false                       # disable cloud logging
-#
-# Outputs are organized under:
-#   outputs/<model_name>/
-#     ├── checkpoints/    # best & last model weights (.ckpt)
-#     ├── wandb/          # W&B local files
-#     └── .hydra/         # frozen config snapshot for reproducibility
+# Examples
+# --------
+#   python main.py model=conformer
+#   python main.py model=dgcnn preprocessing=de_features
+#   python main.py wandb=disabled trainer.fast_dev_run=true
+#   python main.py hydra=debug wandb=disabled trainer.fast_dev_run=true
+#   python main.py --multirun model=eegnet,conformer,atcnet
 
-# ── Which sub-configs to load ──────────────────────────────────────
-# Change the model name to swap architectures (see configs/model/*.yaml)
-# Available: eegnet, conformer, atcnet, dgcnn, rs_stgcn, lmda_net, tsception, ctnet
 defaults:
   - model: eegnet
   - data: mindbigdata
+  - preprocessing: zscore
   - trainer: default
+  - wandb: default
+  - hydra: default
   - _self_
 
 # ── Experiment metadata ────────────────────────────────────────────
 experiment:
-  name: null              # Tag for grouping runs (e.g. "baseline", "sweep_lr", "final_v2")
+  name: null              # Tag for grouping runs (e.g. "baseline", "sweep_lr")
                           # → shows as prefix in W&B run name: "baseline/eegnet"
   seed: 42                # Global random seed for reproducibility
-                          # → change to run multiple seeds: seed=0,1,2 with --multirun
-  project: "MindBigData2023"  # W&B project name (also used as top-level grouping)
-
-# ── Weights & Biases (experiment tracking) ─────────────────────────
-# Dashboard: https://wandb.ai/  (requires `wandb login` inside Docker)
-wandb:
-  enabled: true           # Set false to skip cloud logging entirely
-                          # → metrics still print to console & save locally
-  project: ${experiment.project}  # Inherits from experiment.project above
-  name: null              # Run display name (auto = model name if null)
-  tags: []                # Searchable tags, e.g. ["debug", "high-lr"]
-  notes: ""               # Free-text description of this run
-  log_model: false        # true = upload .ckpt files to W&B (uses storage quota)
-  watch_model: true       # true = log model architecture & gradient histograms
-  watch_log: "gradients"  # What to watch: "gradients", "parameters", "all", or null
-  watch_freq: 100         # Log gradients every N training batches
-
-# ── Hydra output directory ───────────────────────────────────────────
-hydra:
-  job:
-    chdir: true           # Switch working dir to the output folder during run
-  run:
-    dir: outputs/${model._model_name_}/${now:%Y-%m-%d_%H-%M-%S}
-  sweep:
-    dir: outputs/multirun/${now:%Y-%m-%d_%H-%M-%S}
-    subdir: ${hydra.job.num}_${model._model_name_}
+  project: "MindBigData2023"

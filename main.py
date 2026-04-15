@@ -47,6 +47,7 @@ from pathlib import Path
 import torch.multiprocessing as mp
 
 import hydra
+from hydra.core.hydra_config import HydraConfig
 from omegaconf import DictConfig, OmegaConf
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import (
@@ -63,7 +64,7 @@ sys.path.insert(0, str(Path(__file__).parent / "src"))
 from data import MindBigDataModule
 from models import GRAPH_MODELS
 from lightning import MODEL_REGISTRY
-from data.transforms import DEFeatureTransform
+from data.transforms import DEFeatureTransform, ZScoreNormalize
 
 log = logging.getLogger(__name__)
 
@@ -124,18 +125,37 @@ def _build_callbacks(cfg: DictConfig, model_name: str) -> list:
 def _build_logger(cfg: DictConfig, model_name: str):
     """Build experiment logger (W&B or TensorBoard fallback)."""
     if cfg.wandb.enabled:
-        run_name = cfg.wandb.name or model_name
-        if cfg.experiment.name:
-            run_name = f"{cfg.experiment.name}/{run_name}"
+        hydra_cfg = HydraConfig.get()
+        is_multirun = hydra_cfg.mode.name == "MULTIRUN"
 
-        wandb_logger = WandbLogger(
+        if is_multirun:
+            # e.g. "eegnet-0", grouped under "multirun-20260415-0308"
+            job_num = hydra_cfg.job.num
+            # sweep.dir name: "2026-04-15_03-08-13" → "20260415-0308"
+            ts = Path(hydra_cfg.sweep.dir).name  # e.g. "2026-04-15_03-08-13"
+            timestamp = ts[:10].replace("-", "") + "-" + ts[11:16].replace("-", "")
+            run_name = cfg.wandb.name or f"{model_name}-{job_num}"
+            group = f"multirun-{timestamp}"
+        else:
+            run_name = cfg.wandb.name or model_name
+            if cfg.experiment.name:
+                run_name = f"{cfg.experiment.name}/{run_name}"
+            group = cfg.experiment.name or None
+
+        import wandb
+        wandb.init(
             project=cfg.wandb.project,
             name=run_name,
+            group=group,
             tags=list(cfg.wandb.tags) + [model_name],
             notes=cfg.wandb.notes or f"Training {model_name} on MindBigData2023",
+            config=OmegaConf.to_container(cfg, resolve=True),
+            dir=os.getcwd(),
+            reinit=True,
+        )
+        wandb_logger = WandbLogger(
             log_model=cfg.wandb.log_model,
             save_dir=os.getcwd(),
-            config=OmegaConf.to_container(cfg, resolve=True),
         )
         return wandb_logger
     else:
@@ -173,11 +193,19 @@ def main(cfg: DictConfig) -> None:
     if not os.path.isabs(hdf5_dir):
         hdf5_dir = os.path.join(hydra.utils.get_original_cwd(), hdf5_dir)
 
-    transform = None
+    normalize = cfg.preprocessing.normalize
     if model_name in GRAPH_MODELS:
-        sfreq = cfg.data.get("sfreq", 250)
-        transform = DEFeatureTransform(sfreq=sfreq)
-        log.info("Using DE feature transform for graph model '%s'", model_name)
+        # Graph models always need DE features regardless of preprocessing setting
+        transform = DEFeatureTransform(sfreq=cfg.data.sfreq)
+        log.info("Preprocessing: DE features (model=%s requires graph input)", model_name)
+    elif normalize == "zscore":
+        transform = ZScoreNormalize()
+        log.info("Preprocessing: z-score normalization")
+    elif normalize == "none":
+        transform = None
+        log.info("Preprocessing: none")
+    else:
+        raise ValueError(f"Unknown preprocessing.normalize: '{normalize}'. Choose 'zscore', 'de_features', or 'none'.")
 
     dm = MindBigDataModule(
         hdf5_dir=hdf5_dir,

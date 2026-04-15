@@ -1,0 +1,15 @@
+# ── Weights & Biases — Disabled ───────────────────────────────────
+# Disables all W&B logging. Metrics still print to console and
+# are saved locally via TensorBoard.
+#
+# Switch from CLI:  python main.py wandb=disabled
+
+enabled: false
+project: ${experiment.project}
+name: null
+tags: []
+notes: ""
+log_model: false
+watch_model: false
+watch_log: null
+watch_freq: 100

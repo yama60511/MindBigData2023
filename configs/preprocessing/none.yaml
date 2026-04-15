@@ -1,0 +1,7 @@
+# ── Preprocessing: No Normalization ───────────────────────────────
+# Raw EEG passed directly to the model without any preprocessing.
+# Useful for ablation studies or models with built-in normalization.
+#
+# Switch from CLI:  python main.py preprocessing=none
+
+normalize: none

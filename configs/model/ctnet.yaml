@@ -11,19 +11,19 @@ _model_name_: ctnet         # Internal key (do not change)
 nb_classes: 10              # Number of output classes (digits 0-9)
 channels: 128               # Number of EEG channels
 samples: 500                # Number of time samples per trial
-lr: 1e-3                    # Learning rate
+lr: 3e-4                    # Learning rate
 
 # ── CNN Front-end (same style as EEGNet) ──
-F1: 8                       # Number of temporal filters
+F1: 32                      # Number of temporal filters
 D: 2                        # Depth multiplier for spatial convolution
-F2: 16                      # Number of pointwise filters (= F1 × D)
+F2: 64                     # Number of pointwise filters (= F1 × D)
 kern_len: 125               # Temporal kernel length (= sfreq // 2)
 
 # ── Transformer Back-end ──
-n_heads: 4                  # Number of multi-head attention heads
+n_heads: 8                  # Number of multi-head attention heads
                             # → Try: 2, 4, 8
-depth: 2                    # Number of Transformer encoder layers
+depth: 4                    # Number of Transformer encoder layers
                             # → Try: 1, 2, 4
-ff_dim: 64                  # Feed-forward hidden dimension in Transformer
-                            # → Try: 32, 64, 128, 256
-dropout: 0.5                # Dropout rate for regularization
+ff_dim: 256                 # Feed-forward hidden dimension in Transformer
+                            # → Try: 64, 128, 256, 512
+dropout: 0.1                # Dropout rate for regularization

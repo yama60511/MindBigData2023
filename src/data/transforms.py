@@ -1,5 +1,16 @@
-"""Differential Entropy (DE) feature extraction for EEG signals.
+"""EEG transforms: normalization and Differential Entropy (DE) features.
 
+ZScoreNormalize
+---------------
+Per-trial z-score normalization over the time axis (applied per channel).
+Removes trial-level amplitude differences caused by electrode impedance,
+subject variability, and slow drifts.
+
+    Input:  (C, T) raw EEG — 128 channels, 500 samples
+    Output: (C, T) normalized EEG — zero mean, unit std per channel
+
+DEFeatureTransform
+------------------
 Used by graph-based models (DGCNN, RS-STGCN) that operate on frequency-domain
 features rather than raw time-series.
 
@@ -15,6 +26,40 @@ Output: (C, 5) DE features — 128 channels × 5 frequency bands
 import numpy as np
 import torch
 from scipy.signal import butter, sosfilt
+
+
+class ZScoreNormalize:
+    """Per-channel z-score normalization over the time axis.
+
+    For each channel: x = (x - mean) / (std + eps)
+
+    Args:
+        eps: Small constant to avoid division by zero for flat channels.
+
+    Usage::
+
+        transform = ZScoreNormalize()
+        eeg_norm = transform(eeg_tensor)   # (128, 500) → (128, 500)
+    """
+
+    def __init__(self, eps: float = 1e-6) -> None:
+        self.eps = eps
+
+    def __call__(self, eeg: torch.Tensor) -> torch.Tensor:
+        """Normalize EEG trial.
+
+        Args:
+            eeg: FloatTensor of shape (C, T).
+
+        Returns:
+            FloatTensor of shape (C, T), zero mean / unit std per channel.
+        """
+        mean = eeg.mean(dim=-1, keepdim=True)   # (C, 1)
+        std  = eeg.std(dim=-1, keepdim=True)    # (C, 1)
+        return (eeg - mean) / (std + self.eps)
+
+    def __repr__(self) -> str:
+        return f"ZScoreNormalize(eps={self.eps})"
 
 
 # Frequency bands (Hz) — matches standard EEG neuroscience conventions

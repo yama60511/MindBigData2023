@@ -1,0 +1,10 @@
+# ── Preprocessing: Differential Entropy Features ──────────────────
+# Extracts 5-band Differential Entropy (DE) features from raw EEG.
+# Required for graph models (DGCNN, RS-STGCN) which operate on
+# frequency-band features rather than raw time-series.
+#
+# Bands: delta, theta, alpha, beta, gamma
+#
+# Switch from CLI:  python main.py preprocessing=de_features
+
+normalize: de_features

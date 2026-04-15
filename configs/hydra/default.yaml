@@ -1,0 +1,22 @@
+# ── Hydra Runtime — Default ───────────────────────────────────────
+# Standard output directory layout organized by model and timestamp.
+# Config snapshots frozen in .hydra/ for reproducibility.
+#
+# Switch from CLI:  python main.py ~hydra=default (default)
+
+# @package hydra
+
+job:
+  chdir: true
+
+run:
+  dir: outputs/${model._model_name_}/${now:%Y-%m-%d_%H-%M-%S}
+
+sweep:
+  dir: outputs/multirun/${now:%Y-%m-%d_%H-%M-%S}
+  subdir: ${model._model_name_}-${hydra.job.num}
+
+job_logging:
+  handlers:
+    file:
+      filename: ${hydra.runtime.output_dir}/train.log

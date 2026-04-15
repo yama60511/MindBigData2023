@@ -1,0 +1,7 @@
+# ── Preprocessing: Z-Score Normalization ──────────────────────────
+# Per-channel z-score normalization applied to raw EEG time-series.
+# Use for all CNN/Transformer models (EEGNet, Conformer, ATCNet, etc.)
+#
+# Switch from CLI:  python main.py preprocessing=zscore (default)
+
+normalize: zscore
