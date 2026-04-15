@@ -33,6 +33,7 @@ python main.py hydra=sweep --multirun model=eegnet,conformer
 Config groups
 -------------
   model        : eegnet (default), conformer, atcnet, dgcnn, rs_stgcn, lmda_net, tsception, ctnet
+  head         : classification (default)
   preprocessing: zscore (default), de_features, none
   trainer      : default
   optimizer    : adamw (default), adam, sgd
