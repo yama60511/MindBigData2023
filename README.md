@@ -56,7 +56,6 @@ The container is named `mbd2023`.
 ```bash
 docker logs mbd2023 2>&1 | grep "http://127.0.0.1"
 ```
-Open the URL with the token in your browser (e.g. `http://127.0.0.1:8888/lab?token=...`).
 
 **Access the container terminal:**
 ```bash
@@ -92,55 +91,74 @@ Output: `data/processed/digits_1_40hz/{train,val,test}.h5` (88,954 / 31,046 / 20
 
 ## Training
 
-All commands are run inside the Docker container. The entry point is `main.py`, driven entirely by Hydra.
+All commands run inside Docker. The entry point is `main.py`, driven entirely by Hydra.
 
 ### Default run (EEGNet)
 ```bash
-docker exec mbd2023 python main.py
+docker exec mbd2023 bash -c "cd /workspace && python main.py"
 ```
 
 ### Switch model
 ```bash
-docker exec mbd2023 python main.py model=conformer
+docker exec mbd2023 bash -c "cd /workspace && python main.py model=conformer"
 ```
 
 ### Override hyperparameters
 ```bash
-docker exec mbd2023 python main.py model=atcnet model.lr=5e-4 trainer.max_epochs=100
+docker exec mbd2023 bash -c "cd /workspace && python main.py model=atcnet model.lr=5e-4 trainer.max_epochs=100"
 ```
 
-### Transformer warmup (recommended for Conformer, ATCNet, CTNet)
+### Multi-run sweep (all 8 models)
 ```bash
-docker exec mbd2023 python main.py model=conformer trainer.warmup_epochs=5
+docker exec mbd2023 bash -c "cd /workspace && python main.py --multirun \
+  model=eegnet,conformer,atcnet,dgcnn,rs_stgcn,lmda_net,tsception,ctnet"
 ```
 
-### Multi-run sweep
+### Quick sanity check (no GPU needed)
 ```bash
-docker exec mbd2023 python main.py --multirun model=eegnet,conformer,atcnet,lmda_net,tsception,ctnet
-```
-
-### Benchmark all 8 models (100 epochs each)
-```bash
-bash scripts/experiment/run_preliminary_experiments.sh
-```
-
-### Quick sanity check
-```bash
-docker exec mbd2023 python main.py trainer.fast_dev_run=true
+docker exec mbd2023 bash -c "cd /workspace && python main.py hydra=debug wandb=disabled trainer.fast_dev_run=true"
 ```
 
 ### Disable W&B
 ```bash
-docker exec mbd2023 python main.py wandb.enabled=false
+docker exec mbd2023 bash -c "cd /workspace && python main.py wandb=disabled"
 ```
 
-Outputs are saved to `outputs/<model_name>/<timestamp>/` with checkpoints, Hydra config snapshots, and W&B local files.
+---
+
+## Configuration
+
+Configs are organized into Hydra groups — swap any group from the CLI:
+
+| Group | Options | Default |
+|-------|---------|---------|
+| `model` | `eegnet`, `conformer`, `atcnet`, `dgcnn`, `rs_stgcn`, `lmda_net`, `tsception`, `ctnet` | `eegnet` |
+| `preprocessing` | `zscore`, `de_features`, `none` | `zscore` |
+| `trainer` | `default` | `default` |
+| `wandb` | `default`, `disabled` | `default` |
+| `hydra` | `default`, `sweep`, `debug` | `default` |
+
+**Note:** Graph models (`dgcnn`, `rs_stgcn`) automatically use DE features regardless of the `preprocessing` setting.
+
+### Output structure
+```
+outputs/
+  <model>/<timestamp>/          # single run
+    ├── train.log
+    ├── checkpoints/
+    └── .hydra/
+  multirun/<timestamp>/         # --multirun
+    └── <model>-<job_num>/
+```
+
+### W&B run naming
+- **Single run**: run name = model name (e.g. `eegnet`)
+- **Multirun**: run name = `{model}-{job_num}` (e.g. `eegnet-0`), grouped by sweep timestamp
 
 ---
 
 ## Notes
 
-- **W&B logging**: All runs are logged to the `MindBigData2023` W&B project by default. Disable with `wandb.enabled=false`.
-- **W&B re-auth**: If W&B loses authentication, run `docker exec -it mbd2023 wandb login` inside the container.
-- **GPU memory**: If you get CUDA out-of-memory errors, reduce `data.batch_size` (e.g. `data.batch_size=32`).
-- **Data workers**: `num_workers=0` is safest in Docker. Increase if you have sufficient shared memory.
+- **W&B re-auth**: If W&B loses authentication, run `docker exec -it mbd2023 wandb login`.
+- **GPU memory**: Reduce `data.batch_size` if you get CUDA out-of-memory errors (e.g. `data.batch_size=32`).
+- **Data workers**: `num_workers=0` is safest in Docker. Increase only if you have sufficient shared memory.

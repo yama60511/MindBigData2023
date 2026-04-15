@@ -5,6 +5,8 @@ Experiment infrastructure:
   - W&B      → experiment tracking
   - Lightning → training / testing pipeline
 
+All commands run inside Docker (container: mbd2023, workspace: /workspace).
+
 Usage
 -----
 # Default (EEGNet, W&B enabled)
@@ -17,27 +19,33 @@ python main.py model=conformer
 python main.py model=atcnet model.lr=5e-4 trainer.max_epochs=100
 
 # Disable W&B
-python main.py wandb.enabled=false
+python main.py wandb=disabled
 
-# Quick sanity check
-python main.py trainer.fast_dev_run=true
+# Debug run (flat output dir, no W&B)
+python main.py hydra=debug wandb=disabled trainer.fast_dev_run=true
 
-# Multi-run sweep
-python main.py --multirun model=eegnet,conformer,atcnet,lmda_net,tsception,ctnet
+# Multi-run sweep (all 8 models)
+python main.py --multirun model=eegnet,conformer,atcnet,dgcnn,rs_stgcn,lmda_net,tsception,ctnet
 
-# Override experiment name
-python main.py experiment.name=baseline_comparison
+# Sweep with custom output layout
+python main.py hydra=sweep --multirun model=eegnet,conformer
 
-Inside Docker
+Config groups
 -------------
-docker exec mbd2023 bash -c "cd /workspace && python main.py model=conformer"
+  model        : eegnet (default), conformer, atcnet, dgcnn, rs_stgcn, lmda_net, tsception, ctnet
+  preprocessing: zscore (default), de_features, none
+  trainer      : default
+  wandb        : default, disabled
+  hydra        : default, sweep, debug
 
 Output structure
 ----------------
-outputs/<model_name>/<YYYY-MM-DD>/<HH-MM-SS>/
-  ├── checkpoints/          # top-k model checkpoints
-  ├── .hydra/               # config snapshots
-  └── train.log             # console log
+outputs/<model>/<timestamp>/      # single run
+  ├── train.log
+  ├── checkpoints/
+  └── .hydra/
+outputs/multirun/<timestamp>/     # --multirun
+  └── <model>-<job_num>/
 """
 import sys
 import os
