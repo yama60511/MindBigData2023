@@ -1,0 +1,12 @@
+# ── Scheduler: StepLR ─────────────────────────────────────────────
+# Drops LR by a fixed factor every N epochs. Simple and predictable.
+# Good when you know roughly how long training should last.
+#
+# Switch from CLI:  python main.py scheduler=step
+
+name: StepLR
+step_size: 20            # Drop LR every N epochs
+                         # → Try: 10, 20, 30
+gamma: 0.5               # Multiply LR by this at each step
+                         # → 0.5 = halve every step_size epochs
+warmup_epochs: 0

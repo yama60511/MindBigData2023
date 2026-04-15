@@ -1,0 +1,12 @@
+# ── Optimizer: SGD ────────────────────────────────────────────────
+# Stochastic Gradient Descent with momentum and Nesterov acceleration.
+# Can outperform Adam with careful LR tuning — try with StepLR or Cosine.
+#
+# Switch from CLI:  python main.py optimizer=sgd
+
+name: SGD
+lr: 1e-2                 # Learning rate (SGD typically needs higher LR than Adam)
+momentum: 0.9            # Momentum factor
+                         # → 0.9 is standard; try 0.95 for smoother updates
+weight_decay: 1.0e-4     # L2 regularization strength
+nesterov: true           # Nesterov momentum (slightly better than standard)

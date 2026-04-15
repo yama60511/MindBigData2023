@@ -1,0 +1,12 @@
+# ── Optimizer: AdamW ──────────────────────────────────────────────
+# Adam with decoupled weight decay. Best general-purpose choice —
+# better generalization than plain Adam due to proper regularization.
+#
+# Switch from CLI:  python main.py optimizer=adamw (default)
+
+name: AdamW
+lr: 1e-4                 # Learning rate
+weight_decay: 0.01       # L2 regularization strength
+                         # → Try: 0.001, 0.01, 0.1
+betas: [0.9, 0.999]      # Momentum coefficients (β1, β2)
+eps: 1.0e-8              # Numerical stability term
