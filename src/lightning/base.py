@@ -53,13 +53,21 @@ class BaseEEGLightningModule(pl.LightningModule):
         self._step(batch, "test")
 
     def configure_optimizers(self):
-        opt_name = getattr(self, "optimizer_name", "Adam")
-        sched_name = getattr(self, "scheduler_name", "ReduceLROnPlateau")
-        warmup = getattr(self, "warmup_epochs", 0)
+        opt_cfg = getattr(self, "optimizer_cfg", None)
+        sched_cfg = getattr(self, "scheduler_cfg", None)
 
-        optimizer = build_optimizer(self.parameters(), name=opt_name, lr=self.lr)
+        # Extract name + hyperparams from optimizer config
+        opt_name = opt_cfg.name if opt_cfg else "AdamW"
+        opt_kwargs = {k: v for k, v in opt_cfg.items() if k != "name"} if opt_cfg else {}
+
+        # Extract name, warmup, + hyperparams from scheduler config
+        sched_name = sched_cfg.name if sched_cfg else "CosineAnnealingLR"
+        warmup = int(sched_cfg.warmup_epochs) if sched_cfg else 0
+        sched_kwargs = {k: v for k, v in sched_cfg.items() if k not in ("name", "warmup_epochs")} if sched_cfg else {}
+
+        optimizer = build_optimizer(self.parameters(), name=opt_name, lr=self.lr, **opt_kwargs)
         scheduler = build_scheduler(
-            optimizer, name=sched_name, warmup_epochs=warmup
+            optimizer, name=sched_name, warmup_epochs=warmup, **sched_kwargs
         )
 
         if scheduler is None:

@@ -1,8 +1,11 @@
 # ── Trainer configuration ──────────────────────────────────────────
 #
 # Controls training duration, hardware, and stopping behavior.
-# Override from CLI:  python main.py trainer.max_epochs=200 trainer.patience=20
+# Optimizer and scheduler are separate config groups:
+#   trainer/optimizer → configs/trainer/optimizer/*.yaml
+#   trainer/scheduler → configs/trainer/scheduler/*.yaml
 #
+# Override from CLI:  python main.py trainer.max_epochs=200 trainer.patience=20
 
 max_epochs: 50            # Maximum number of training epochs
                           # → Early stopping may halt training before this limit
@@ -11,34 +14,4 @@ accelerator: auto         # Hardware backend: "auto", "gpu", "cpu", "tpu"
 patience: 10              # EarlyStopping: stop if val_acc doesn't improve for N epochs
                           # → Set to 0 to disable early stopping entirely
 fast_dev_run: false       # true = run 1 train + 1 val batch only (for debugging)
-                          # → Useful to verify code works before a long run
 deterministic: true       # true = fully reproducible results (slightly slower)
-                          # → Set false if you want maximum GPU speed
-
-# ── Optimizer ──────────────────────────────────────────────────────
-# Controls HOW the model learns (weight update rule).
-# Available: "Adam", "AdamW", "SGD"
-#
-# Override from CLI:  python main.py trainer.optimizer=AdamW
-optimizer: "AdamW"
-  # Adam   — good all-purpose default, fast convergence
-  # AdamW  — Adam + proper weight decay (better generalization)
-  # SGD    — classic optimizer, often best with careful LR tuning
-
-# ── Scheduler ──────────────────────────────────────────────────────
-# Controls HOW the learning rate changes during training.
-# Available: "ReduceLROnPlateau", "CosineAnnealingLR", "StepLR", "None"
-#
-# Override from CLI:  python main.py trainer.scheduler=CosineAnnealingLR
-scheduler: "CosineAnnealingLR"
-  # ReduceLROnPlateau — halves LR when val_acc stalls for 5 epochs (adaptive)
-  # CosineAnnealingLR — smoothly decays LR following a cosine curve
-  # StepLR            — drops LR by 50% every 20 epochs (fixed schedule)
-  # None              — constant learning rate throughout training
-
-# ── Warmup ─────────────────────────────────────────────────────────
-# Linearly ramps LR from ~0 to base LR over N epochs before scheduler kicks in.
-# Recommended for Transformer models (Conformer, CTNet, ATCNet).
-#
-# Override from CLI:  python main.py trainer.warmup_epochs=5
-warmup_epochs: 10         # 0 = disabled, 5-10 recommended for Transformers

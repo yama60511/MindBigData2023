@@ -1,0 +1,12 @@
+# ── Scheduler: ReduceLROnPlateau ──────────────────────────────────
+# Halves LR when val_acc stops improving. Adaptive — no need to tune T_max.
+# Good fallback when you're unsure about training length.
+#
+# Switch from CLI:  python main.py trainer/scheduler=reduce_on_plateau
+
+name: ReduceLROnPlateau
+factor: 0.5              # Multiply LR by this when plateau is detected
+                         # → 0.5 = halve the LR
+patience: 5              # Epochs to wait before reducing LR
+                         # → Try: 3, 5, 10
+warmup_epochs: 0         # Warmup not recommended with ReduceLROnPlateau

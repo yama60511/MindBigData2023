@@ -24,6 +24,8 @@ defaults:
   - data: mindbigdata
   - preprocessing: zscore
   - trainer: default
+  - trainer/optimizer: adamw
+  - trainer/scheduler: cosine
   - wandb: default
   - hydra: default
   - _self_

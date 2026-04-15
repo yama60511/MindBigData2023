@@ -229,10 +229,9 @@ def main(cfg: DictConfig) -> None:
     model_kwargs = _build_model_kwargs(cfg)
     model = model_cls(**model_kwargs)
 
-    # Inject trainer-level optimizers directly into the Lightning wrapper
-    model.optimizer_name = cfg.trainer.get("optimizer", "Adam")
-    model.scheduler_name = cfg.trainer.get("scheduler", "ReduceLROnPlateau")
-    model.warmup_epochs = cfg.trainer.get("warmup_epochs", 0)
+    # Inject optimizer/scheduler configs into the Lightning wrapper
+    model.optimizer_cfg = cfg.trainer.optimizer
+    model.scheduler_cfg = cfg.trainer.scheduler
 
     n_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     log.info("Trainable parameters: %s", f"{n_params:,}")
