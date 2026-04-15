@@ -8,11 +8,8 @@
 #
 _model_name_: lmda_net      # Internal key (do not change)
 
-nb_classes: 10              # Number of output classes (digits 0-9)
 channels: 128               # Number of EEG channels
 samples: 500                # Number of time samples per trial
-lr: 1e-4                    # Learning rate
-
 # ── Architecture ──
 F1: 32                      # Number of temporal filters
                             # → Try: 8, 16, 32, 64

@@ -7,6 +7,7 @@ from .rs_stgcn.rs_stgcn import RSSTGCN
 from .lmda_net.lmda_net import LMDANet
 from .tsception.tsception import TSception
 from .ctnet.ctnet import CTNet
+from .heads import ClassificationHead
 
 # Models that require DE features instead of raw EEG
 GRAPH_MODELS = {"dgcnn", "rs_stgcn"}
@@ -20,5 +21,6 @@ __all__ = [
     "LMDANet",
     "TSception",
     "CTNet",
+    "ClassificationHead",
     "GRAPH_MODELS",
 ]

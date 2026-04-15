@@ -1,16 +1,9 @@
-"""CTNet — Convolutional Transformer Network for EEG classification.
+"""CTNet — Convolutional Transformer Network for EEG.
 
 Reference: Zhao et al. "CTNet: A Convolutional Transformer Network for
 EEG-Based Motor Imagery Classification."
 
 Official repo: https://github.com/snailpt/CTNet
-
-Adapted for MindBigData2023
-----------------------------
-  channels  : 128
-  samples   : 500
-  sfreq     : 250 Hz
-  nb_classes: 10
 
 Architecture
 ------------
@@ -26,19 +19,17 @@ Reshape to Sequence
 Transformer Encoder (lightweight)
   2 layers × (LayerNorm → MultiHeadAttention → FFN → residual)
 
-Classification
-  Global average pool over tokens → FC → nb_classes
+Output
+  Global average pool over tokens → embedding of shape (B, F2)
 """
 import torch
 import torch.nn as nn
-import pytorch_lightning as pl
 
 
 class CTNet(nn.Module):
-    """CTNet: Lightweight CNN + Transformer Encoder.
+    """CTNet: Lightweight CNN + Transformer Encoder EEG feature extractor.
 
     Args:
-        nb_classes: Number of output classes.
         channels:   Number of EEG channels.
         samples:    Number of time samples.
         F1:         Temporal filters.
@@ -49,11 +40,13 @@ class CTNet(nn.Module):
         depth:      Number of transformer layers.
         ff_dim:     Feed-forward hidden dimension.
         dropout:    Dropout probability.
+
+    Attributes:
+        feature_dim: Size of the output embedding vector (= F2).
     """
 
     def __init__(
         self,
-        nb_classes: int = 10,
         channels: int = 128,
         samples: int = 500,
         F1: int = 8,
@@ -104,16 +97,14 @@ class CTNet(nn.Module):
             encoder_layer, num_layers=depth,
         )
         self.norm = nn.LayerNorm(F2)
-
-        # --- Classifier ---
-        self.classifier = nn.Linear(F2, nb_classes)
+        self.feature_dim = F2
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
         Args:
             x: (B, C, T) or (B, 1, C, T).
         Returns:
-            logits (B, nb_classes).
+            embedding (B, feature_dim).
         """
         if x.dim() == 3:
             x = x.unsqueeze(1)
@@ -131,6 +122,4 @@ class CTNet(nn.Module):
         x = self.norm(x)
 
         # Global average pool over tokens
-        x = x.mean(dim=1)                 # (B, F2)
-
-        return self.classifier(x)
+        return x.mean(dim=1)              # (B, feature_dim)

@@ -16,7 +16,7 @@ python main.py
 python main.py model=conformer
 
 # Override hyperparameters
-python main.py model=atcnet model.lr=5e-4 trainer.max_epochs=100
+python main.py model=atcnet optimizer.lr=5e-4 trainer.max_epochs=100
 
 # Disable W&B
 python main.py wandb=disabled
@@ -35,6 +35,8 @@ Config groups
   model        : eegnet (default), conformer, atcnet, dgcnn, rs_stgcn, lmda_net, tsception, ctnet
   preprocessing: zscore (default), de_features, none
   trainer      : default
+  optimizer    : adamw (default), adam, sgd
+  scheduler    : none (default), cosine, reduce_on_plateau, step
   wandb        : default, disabled
   hydra        : default, sweep, debug
 
@@ -227,11 +229,13 @@ def main(cfg: DictConfig) -> None:
     # ------------------------------------------------------------------
     model_cls = MODEL_REGISTRY[model_name]
     model_kwargs = _build_model_kwargs(cfg)
+    model_kwargs["lr"] = cfg.optimizer.lr
+    model_kwargs["nb_classes"] = cfg.head.num_classes
     model = model_cls(**model_kwargs)
 
     # Inject optimizer/scheduler configs into the Lightning wrapper
-    model.optimizer_cfg = cfg.trainer.optimizer
-    model.scheduler_cfg = cfg.trainer.scheduler
+    model.optimizer_cfg = cfg.optimizer
+    model.scheduler_cfg = cfg.scheduler
 
     n_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     log.info("Trainable parameters: %s", f"{n_params:,}")

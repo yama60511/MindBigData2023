@@ -1,17 +1,10 @@
-"""TSception — Multi-scale Temporal-Spatial CNN for EEG classification.
+"""TSception — Multi-scale Temporal-Spatial CNN for EEG.
 
 Reference: Ding et al. (2022) "TSception: Capturing Temporal Dynamics and
 Spatial Asymmetry from EEG for Emotion Recognition."
 IEEE Trans. Affective Computing, 14(3), 2238-2250.
 
 Official repo: https://github.com/yi-ding-cs/TSception
-
-Adapted for MindBigData2023
-----------------------------
-  channels  : 128
-  samples   : 500
-  sfreq     : 250 Hz
-  nb_classes: 10
 
 Architecture
 ------------
@@ -32,13 +25,12 @@ Asymmetric Spatial Layer
 Fusion Layer
   Concatenate temporal × spatial branches → Conv2d → BN → ELU → AvgPool
 
-Classifier
-  Flatten → FC → nb_classes
+Output
+  Flatten → embedding of shape (B, fused_channels * T'')
 """
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import pytorch_lightning as pl
 
 
 class _TemporalBranch(nn.Module):
@@ -76,20 +68,21 @@ class _SpatialBranch(nn.Module):
 
 
 class TSception(nn.Module):
-    """TSception: Multi-scale Temporal-Spatial CNN.
+    """TSception: Multi-scale Temporal-Spatial CNN EEG feature extractor.
 
     Args:
-        nb_classes: Number of output classes.
         channels:   Number of EEG channels.
         samples:    Number of time samples.
         sfreq:      Sampling frequency (used to compute kernel sizes).
         F1:         Filters per temporal branch.
         dropout:    Dropout probability.
+
+    Attributes:
+        feature_dim: Size of the output embedding vector.
     """
 
     def __init__(
         self,
-        nb_classes: int = 10,
         channels: int = 128,
         samples: int = 500,
         sfreq: int = 250,
@@ -135,9 +128,8 @@ class TSception(nn.Module):
             nn.Dropout(dropout),
         )
 
-        # --- Classifier ---
         t_final = t_after_pool // 8
-        self.classifier = nn.Linear(fused_channels * t_final, nb_classes)
+        self.feature_dim = fused_channels * t_final
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
@@ -174,5 +166,4 @@ class TSception(nn.Module):
 
         # --- Fusion ---
         x = self.fusion(x)                # (B, fused, 1, T'')
-        x = x.flatten(1)
-        return self.classifier(x)
+        return x.flatten(1)               # (B, feature_dim)

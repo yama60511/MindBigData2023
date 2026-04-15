@@ -5,7 +5,8 @@ away from the pure mathematical PyTorch network definitions.
 """
 from models import (
     EEGNet, EEGConformer, ATCNet, DGCNN,
-    RSSTGCN, LMDANet, TSception, CTNet
+    RSSTGCN, LMDANet, TSception, CTNet,
+    ClassificationHead,
 )
 
 from .base import BaseEEGLightningModule
@@ -13,55 +14,63 @@ from .base import BaseEEGLightningModule
 
 class LitEEGNet(BaseEEGLightningModule):
     def __init__(self, nb_classes: int = 10, lr: float = 1e-3, **kwargs):
-        model = EEGNet(nb_classes=nb_classes, **kwargs)
-        super().__init__(model, lr)
-        self.save_hyperparameters(ignore=["model"])
+        model = EEGNet(**kwargs)
+        head = ClassificationHead(model.feature_dim, nb_classes)
+        super().__init__(model, head, lr)
+        self.save_hyperparameters(ignore=["model", "head"])
 
 
 class LitEEGConformer(BaseEEGLightningModule):
     def __init__(self, nb_classes: int = 10, lr: float = 2e-4, **kwargs):
-        model = EEGConformer(nb_classes=nb_classes, **kwargs)
-        super().__init__(model, lr)
-        self.save_hyperparameters(ignore=["model"])
+        model = EEGConformer(**kwargs)
+        head = ClassificationHead(model.feature_dim, nb_classes)
+        super().__init__(model, head, lr)
+        self.save_hyperparameters(ignore=["model", "head"])
 
 
 class LitATCNet(BaseEEGLightningModule):
     def __init__(self, nb_classes: int = 10, lr: float = 1e-3, **kwargs):
-        model = ATCNet(nb_classes=nb_classes, **kwargs)
-        super().__init__(model, lr)
-        self.save_hyperparameters(ignore=["model"])
+        model = ATCNet(**kwargs)
+        head = ClassificationHead(model.feature_dim, nb_classes)
+        super().__init__(model, head, lr)
+        self.save_hyperparameters(ignore=["model", "head"])
 
 
 class LitDGCNN(BaseEEGLightningModule):
     def __init__(self, nb_classes: int = 10, lr: float = 1e-3, **kwargs):
-        model = DGCNN(nb_classes=nb_classes, **kwargs)
-        super().__init__(model, lr)
-        self.save_hyperparameters(ignore=["model"])
+        model = DGCNN(**kwargs)
+        head = ClassificationHead(model.feature_dim, nb_classes)
+        super().__init__(model, head, lr)
+        self.save_hyperparameters(ignore=["model", "head"])
 
 
 class LitRSSTGCN(BaseEEGLightningModule):
     def __init__(self, nb_classes: int = 10, lr: float = 1e-3, **kwargs):
-        model = RSSTGCN(nb_classes=nb_classes, **kwargs)
-        super().__init__(model, lr)
-        self.save_hyperparameters(ignore=["model"])
+        model = RSSTGCN(**kwargs)
+        head = ClassificationHead(model.feature_dim, nb_classes)
+        super().__init__(model, head, lr)
+        self.save_hyperparameters(ignore=["model", "head"])
 
 
 class LitLMDANet(BaseEEGLightningModule):
     def __init__(self, nb_classes: int = 10, lr: float = 1e-3, **kwargs):
-        model = LMDANet(nb_classes=nb_classes, **kwargs)
-        super().__init__(model, lr)
-        self.save_hyperparameters(ignore=["model"])
+        model = LMDANet(**kwargs)
+        head = ClassificationHead(model.feature_dim, nb_classes)
+        super().__init__(model, head, lr)
+        self.save_hyperparameters(ignore=["model", "head"])
 
 
 class LitTSception(BaseEEGLightningModule):
     def __init__(self, nb_classes: int = 10, lr: float = 1e-3, **kwargs):
-        model = TSception(nb_classes=nb_classes, **kwargs)
-        super().__init__(model, lr)
-        self.save_hyperparameters(ignore=["model"])
+        model = TSception(**kwargs)
+        head = ClassificationHead(model.feature_dim, nb_classes)
+        super().__init__(model, head, lr)
+        self.save_hyperparameters(ignore=["model", "head"])
 
 
 class LitCTNet(BaseEEGLightningModule):
     def __init__(self, nb_classes: int = 10, lr: float = 1e-3, **kwargs):
-        model = CTNet(nb_classes=nb_classes, **kwargs)
-        super().__init__(model, lr)
-        self.save_hyperparameters(ignore=["model"])
+        model = CTNet(**kwargs)
+        head = ClassificationHead(model.feature_dim, nb_classes)
+        super().__init__(model, head, lr)
+        self.save_hyperparameters(ignore=["model", "head"])

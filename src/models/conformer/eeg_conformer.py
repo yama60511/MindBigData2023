@@ -14,8 +14,10 @@ PatchEmbedding (CNN front-end)
 TransformerEncoder (nn.TransformerEncoder, pre-norm)
   depth × (LayerNorm → MultiHeadAttention → FFN → residual)
 
-ClassificationHead
-  Flatten → FC layers → nb_classes
+Projection
+  Flatten → FC(flat_size, 256) → ELU → Dropout
+          → FC(256, 32) → ELU → Dropout
+  Output: embedding of shape (B, 32)
 """
 import torch
 import torch.nn as nn
@@ -56,21 +58,22 @@ class PatchEmbedding(nn.Module):
 
 
 class EEGConformer(nn.Module):
-    """EEG Conformer: CNN + Transformer for EEG classification.
+    """EEG Conformer: CNN + Transformer EEG feature extractor.
 
     Args:
-        nb_classes: Number of output classes.
         channels:   Number of EEG channels.
         samples:    Number of time samples.
         emb_size:   Embedding dimension for transformer tokens.
         depth:      Number of transformer encoder layers.
         num_heads:  Number of attention heads (must divide emb_size).
         dropout:    Dropout probability.
+
+    Attributes:
+        feature_dim: Size of the output embedding vector (32).
     """
 
     def __init__(
         self,
-        nb_classes: int = 10,
         channels: int = 128,
         samples: int = 500,
         emb_size: int = 40,
@@ -101,17 +104,17 @@ class EEGConformer(nn.Module):
         t_after_pool = (t_after_conv - 75) // 15 + 1
         n_tokens = t_after_pool
 
-        # Classification head
+        # Projection: compress flat token sequence to a compact embedding
         flat_size = n_tokens * emb_size
-        self.classifier = nn.Sequential(
+        self.projection = nn.Sequential(
             nn.Linear(flat_size, 256),
             nn.ELU(),
             nn.Dropout(0.5),
             nn.Linear(256, 32),
             nn.ELU(),
             nn.Dropout(0.3),
-            nn.Linear(32, nb_classes),
         )
+        self.feature_dim = 32
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         if x.dim() == 3:
@@ -119,4 +122,4 @@ class EEGConformer(nn.Module):
         x = self.patch_embedding(x)
         x = self.transformer(x)
         x = x.contiguous().view(x.size(0), -1)
-        return self.classifier(x)
+        return self.projection(x)   # (B, feature_dim)

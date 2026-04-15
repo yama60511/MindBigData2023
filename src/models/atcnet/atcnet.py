@@ -1,15 +1,8 @@
-"""ATCNet — Attention Temporal Convolutional Network for EEG classification.
+"""ATCNet — Attention Temporal Convolutional Network for EEG.
 
 Reference: Altaheri et al. (2022) "Physics-Informed Attention Temporal
 Convolutional Network for EEG-Based Motor Imagery Classification."
 IEEE Trans. Industrial Informatics.
-
-Adapted for MindBigData2023
-----------------------------
-  channels  : 128
-  samples   : 500
-  sfreq     : 250 Hz
-  nb_classes: 10
 
 Architecture
 ------------
@@ -27,12 +20,11 @@ Per-Window: Attention + TCN
   TCN: dilated causal 1D convolutions with residual connections
 
 Fusion
-  Concatenate all window outputs → Linear classifier
+  Concatenate all window outputs → embedding of shape (B, n_windows * tcn_channels)
 """
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import pytorch_lightning as pl
 
 
 # ---------------------------------------------------------------------------
@@ -158,7 +150,6 @@ class ATCNet(nn.Module):
     """ATCNet: Attention + Temporal Convolutional Network for EEG.
 
     Args:
-        nb_classes:   Number of output classes.
         channels:     Number of EEG channels.
         samples:      Number of time samples.
         F1:           Temporal filters in conv block.
@@ -168,11 +159,13 @@ class ATCNet(nn.Module):
         tcn_channels: Hidden channels in TCN blocks.
         n_heads:      Attention heads.
         dropout:      Dropout probability.
+
+    Attributes:
+        feature_dim: Size of the output embedding vector.
     """
 
     def __init__(
         self,
-        nb_classes: int = 10,
         channels: int = 128,
         samples: int = 500,
         F1: int = 16,
@@ -198,8 +191,7 @@ class ATCNet(nn.Module):
             n_heads=n_heads, dropout=dropout,
         )
 
-        # Classifier
-        self.classifier = nn.Linear(n_windows * tcn_channels, nb_classes)
+        self.feature_dim = n_windows * tcn_channels
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         if x.dim() == 3:
@@ -224,5 +216,4 @@ class ATCNet(nn.Module):
             out = self.attn_tcn(window)       # (B, tcn_channels)
             window_outputs.append(out)
 
-        x = torch.cat(window_outputs, dim=1)  # (B, n_windows * tcn_channels)
-        return self.classifier(x)
+        return torch.cat(window_outputs, dim=1)  # (B, feature_dim)

@@ -4,13 +4,6 @@ Reference: Miao et al. (2023) "LMDA-Net: A lightweight multi-dimensional
 attention network for general EEG-based brain-computer interfaces."
 NeuroImage, 276, 120209.
 
-Adapted for MindBigData2023
-----------------------------
-  channels  : 128
-  samples   : 500
-  sfreq     : 250 Hz
-  nb_classes: 10
-
 Architecture
 ------------
 Input : (B, 1, C, T)
@@ -30,13 +23,12 @@ Depth Attention (across feature depth dimension)
 Separable Conv
   Depthwise temporal + Pointwise → BN → ELU → AvgPool → Dropout
 
-Classifier
-  Flatten → Linear → nb_classes
+Output
+  Flatten → embedding of shape (B, F2 * T')
 """
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import pytorch_lightning as pl
 
 
 class _ChannelAttention(nn.Module):
@@ -84,10 +76,9 @@ class _DepthAttention(nn.Module):
 
 
 class LMDANet(nn.Module):
-    """LMDA-Net: Lightweight Multi-Dimensional Attention Network.
+    """LMDA-Net: Lightweight Multi-Dimensional Attention Network EEG feature extractor.
 
     Args:
-        nb_classes: Number of output classes.
         channels:   Number of EEG channels.
         samples:    Number of time samples.
         F1:         Number of temporal filters.
@@ -95,11 +86,13 @@ class LMDANet(nn.Module):
         F2:         Pointwise filter count (default F1*D).
         kern_len:   Temporal filter length.
         dropout:    Dropout probability.
+
+    Attributes:
+        feature_dim: Size of the output embedding vector.
     """
 
     def __init__(
         self,
-        nb_classes: int = 10,
         channels: int = 128,
         samples: int = 500,
         F1: int = 8,
@@ -145,9 +138,8 @@ class LMDANet(nn.Module):
             nn.Dropout(dropout),
         )
 
-        # --- Classification head ---
         t_after_pool = (samples // 4) // 8
-        self.classifier = nn.Linear(F2 * t_after_pool, nb_classes)
+        self.feature_dim = F2 * t_after_pool
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
@@ -164,5 +156,4 @@ class LMDANet(nn.Module):
         x = self.spatial_conv(x)        # (B, F1*D, 1, T//4)
         x = self.depth_attn(x)          # (B, F1*D, 1, T//4) — depth-weighted
         x = self.separable_conv(x)      # (B, F2, 1, T//32)
-        x = x.flatten(1)
-        return self.classifier(x)
+        return x.flatten(1)             # (B, feature_dim)

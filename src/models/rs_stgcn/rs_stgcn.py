@@ -3,11 +3,6 @@
 Reference: Yunqi et al. (2025) "RS-STGCN: Regional-Synergy Spatio-Temporal
 Graph Convolutional Network for Emotion Recognition."
 
-Adapted for MindBigData2023
-----------------------------
-  channels  : 128
-  nb_classes: 10
-
 Architecture
 ------------
 Input: (B, C, F)  where C=128 channels, F=5 DE features
@@ -23,8 +18,9 @@ Spatial GCN Block
   Learnable adjacency for inter-regional synergy
   Graph convolution on region-level features
 
-Fusion & Classification
-  Combine regional and global features → FC
+Output
+  Flatten regions → FC(n_regions * spatial_dim, 64) → ReLU → Dropout
+  embedding of shape (B, 64)
 
 NOTE: This model expects DE features as input, not raw time-series.
       Use DEFeatureTransform from data.transforms.
@@ -32,7 +28,6 @@ NOTE: This model expects DE features as input, not raw time-series.
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import pytorch_lightning as pl
 
 from .channel_groups import get_group_indices
 
@@ -75,10 +70,9 @@ class _SpatialGCN(nn.Module):
 
 
 class RSSTGCN(nn.Module):
-    """RS-STGCN: Regional-Synergy Spatio-Temporal GCN.
+    """RS-STGCN: Regional-Synergy Spatio-Temporal GCN EEG feature extractor.
 
     Args:
-        nb_classes:     Number of output classes.
         n_channels:     Number of EEG channels.
         in_features:    Input feature dim per node (5 for DE bands).
         regional_dim:   Hidden dim for intra-regional conv.
@@ -87,11 +81,13 @@ class RSSTGCN(nn.Module):
         region_indices: List of list of channel indices per region.
                         If None, falls back to the mapping in channel_groups.py.
         dropout:        Dropout probability.
+
+    Attributes:
+        feature_dim: Size of the output embedding vector (64).
     """
 
     def __init__(
         self,
-        nb_classes: int = 10,
         n_channels: int = 128,
         in_features: int = 5,
         regional_dim: int = 32,
@@ -122,13 +118,13 @@ class RSSTGCN(nn.Module):
 
         self.dropout = nn.Dropout(dropout)
 
-        # Classifier
-        self.classifier = nn.Sequential(
+        # Projection to compact embedding
+        self.projection = nn.Sequential(
             nn.Linear(n_regions * spatial_dim, 64),
             nn.ReLU(),
             nn.Dropout(dropout),
-            nn.Linear(64, nb_classes),
         )
+        self.feature_dim = 64
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
@@ -156,6 +152,6 @@ class RSSTGCN(nn.Module):
         x = self.spatial_gcn2(x)            # (B, R, spatial_dim)
         x = self.dropout(x)
 
-        # Flatten and classify
+        # Flatten and project
         x = x.reshape(B, -1)               # (B, R * spatial_dim)
-        return self.classifier(x)
+        return self.projection(x)          # (B, feature_dim)

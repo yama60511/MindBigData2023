@@ -3,15 +3,12 @@
 # A lightweight CNN designed specifically for EEG. Good starting point.
 #
 # Override from CLI:
-#   python main.py model=eegnet model.lr=5e-4 model.dropout=0.3
+#   python main.py model=eegnet optimizer.lr=5e-4 model.dropout=0.3
 #
 _model_name_: eegnet        # Internal key (do not change)
 
-nb_classes: 10              # Number of output classes (digits 0-9)
 channels: 128               # Number of EEG channels
 samples: 500                # Number of time samples per trial
-lr: 1e-4                    # Learning rate
-
 # ── Architecture ──
 F1: 32                      # Number of temporal filters (1st conv layer)
                             # → More filters = captures more temporal patterns

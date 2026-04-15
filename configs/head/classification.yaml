@@ -1,0 +1,8 @@
+# ── Classification head configuration ──────────────────────────────
+#
+# Controls the output head attached to the model backbone.
+# Override from CLI:  python main.py head.num_classes=5
+#
+
+num_classes: 10           # Number of output classes
+                          # → MindBigData2023 digits: 10 (0-9)

@@ -4,11 +4,6 @@ Reference: Song et al. (2018) "EEG Emotion Recognition Using Dynamical
 Graph Convolutional Neural Networks."
 IEEE Trans. Affective Computing.
 
-Adapted for MindBigData2023
-----------------------------
-  channels  : 128
-  nb_classes: 10
-
 Architecture
 ------------
 Input: (B, C, F)  where C=128 channels, F=5 frequency-band DE features
@@ -19,8 +14,9 @@ Learnable Adjacency Matrix
 Graph Convolutional Layers × K
   X' = ReLU(BN(A · X · W))
 
-Classifier
-  Global average pooling → FC → nb_classes
+Output
+  Global average pooling → FC(hidden_dim, 64) → ReLU → Dropout
+  embedding of shape (B, 64)
 
 NOTE: This model expects Differential Entropy (DE) features as input,
       NOT raw time-series. Use DEFeatureTransform from data.transforms.
@@ -28,7 +24,6 @@ NOTE: This model expects Differential Entropy (DE) features as input,
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import pytorch_lightning as pl
 
 
 class GraphConvLayer(nn.Module):
@@ -60,20 +55,21 @@ class GraphConvLayer(nn.Module):
 
 
 class DGCNN(nn.Module):
-    """Dynamical Graph CNN for EEG classification.
+    """Dynamical Graph CNN EEG feature extractor.
 
     Args:
-        nb_classes:    Number of output classes.
         n_channels:    Number of EEG channels (graph nodes).
         in_features:   Input feature dim per node (5 for DE bands).
         hidden_dim:    Hidden dimension in graph conv layers.
         n_layers:      Number of graph conv layers.
         dropout:       Dropout probability.
+
+    Attributes:
+        feature_dim: Size of the output embedding vector (64).
     """
 
     def __init__(
         self,
-        nb_classes: int = 10,
         n_channels: int = 128,
         in_features: int = 5,
         hidden_dim: int = 32,
@@ -94,13 +90,13 @@ class DGCNN(nn.Module):
         self.gc_layers = nn.ModuleList(layers)
         self.dropout = nn.Dropout(dropout)
 
-        # Classifier
-        self.classifier = nn.Sequential(
+        # Projection to compact embedding
+        self.projection = nn.Sequential(
             nn.Linear(hidden_dim, 64),
             nn.ReLU(),
             nn.Dropout(dropout),
-            nn.Linear(64, nb_classes),
         )
+        self.feature_dim = 64
 
     def _get_adj(self) -> torch.Tensor:
         """Normalize adjacency matrix via row-wise softmax."""
@@ -122,4 +118,4 @@ class DGCNN(nn.Module):
 
         # Global average pooling over nodes
         x = x.mean(dim=1)                 # (B, hidden_dim)
-        return self.classifier(x)
+        return self.projection(x)         # (B, feature_dim)

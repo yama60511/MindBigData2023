@@ -6,22 +6,23 @@ from .utils import build_optimizer, build_scheduler
 
 class BaseEEGLightningModule(pl.LightningModule):
     """Shared PyTorch Lightning boilerplate for all EEG models.
-    
-    Subclasses must only initialize their inner `nn.Module` and pass it
-    along with the learning rate to `super().__init__(model, lr)`.
+
+    Subclasses must initialize the backbone and head, then pass both
+    along with the learning rate to `super().__init__(model, head, lr)`.
     """
-    def __init__(self, model: nn.Module, lr: float) -> None:
+    def __init__(self, model: nn.Module, head: nn.Module, lr: float) -> None:
         super().__init__()
         self.model = model
+        self.head = head
         self.lr = lr
         self.criterion = nn.CrossEntropyLoss()
 
     def forward(self, x):
-        return self.model(x)
+        return self.head(self.model(x))
 
     def _step(self, batch: tuple, stage: str) -> torch.Tensor:
         eeg, labels = batch
-        logits = self.model(eeg)
+        logits = self.head(self.model(eeg))
         loss = self.criterion(logits, labels)
 
         preds = logits.argmax(dim=1)
@@ -58,7 +59,7 @@ class BaseEEGLightningModule(pl.LightningModule):
 
         # Extract name + hyperparams from optimizer config
         opt_name = opt_cfg.name if opt_cfg else "AdamW"
-        opt_kwargs = {k: v for k, v in opt_cfg.items() if k != "name"} if opt_cfg else {}
+        opt_kwargs = {k: v for k, v in opt_cfg.items() if k not in ("name", "lr")} if opt_cfg else {}
 
         # Extract name, warmup, + hyperparams from scheduler config
         sched_name = sched_cfg.name if sched_cfg else "CosineAnnealingLR"

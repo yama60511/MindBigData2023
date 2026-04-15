@@ -8,13 +8,10 @@
 #
 _model_name_: dgcnn         # Internal key (do not change)
 
-nb_classes: 10              # Number of output classes (digits 0-9)
 n_channels: 128             # Number of EEG channels (= graph nodes)
 in_features: 5              # Input features per channel = 5 frequency bands (DE)
                             # → delta, theta, alpha, beta, gamma
                             # → Do NOT change unless you modify preprocessing
-lr: 1e-4                    # Learning rate
-
 # ── Architecture ──
 hidden_dim: 128             # Hidden dimension in graph convolution layers
                             # → Try: 32, 64, 128, 256

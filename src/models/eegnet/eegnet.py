@@ -6,13 +6,6 @@ https://iopscience.iop.org/article/10.1088/1741-2552/aace8c
 
 Original Keras repo: https://github.com/aliasvishnu/EEGNet
 
-Adapted for MindBigData2023
-----------------------------
-  channels  : 128
-  samples   : 500
-  sfreq     : 250 Hz
-  nb_classes: 11  (digits 0–9  +  black-screen label remapped to 10)
-
 Architecture
 ------------
 Input : (B, 1, C, T)   where C=channels, T=samples
@@ -34,13 +27,12 @@ Block 2 — separable convolution
   AvgPool2d((1, 8))
   Dropout(p)
 
-Head
-  Flatten → Linear(F2 * T', nb_classes)
+Output
+  Flatten → embedding of shape (B, F2 * T')
   where T' = floor(floor(T / 4) / 8)
 """
 import torch
 import torch.nn as nn
-import pytorch_lightning as pl
 
 
 # ---------------------------------------------------------------------------
@@ -48,10 +40,9 @@ import pytorch_lightning as pl
 # ---------------------------------------------------------------------------
 
 class EEGNet(nn.Module):
-    """EEGNet convolutional EEG classifier.
+    """EEGNet convolutional EEG feature extractor.
 
     Args:
-        nb_classes:  Number of output classes.
         channels:    Number of EEG channels (C).
         samples:     Number of time samples (T).
         F1:          Number of temporal filters in Block 1.
@@ -59,11 +50,13 @@ class EEGNet(nn.Module):
         F2:          Number of pointwise filters in Block 2 (typically F1*D).
         kern_len:    Temporal filter length (paper recommends sfreq // 2).
         dropout:     Dropout probability.
+
+    Attributes:
+        feature_dim: Size of the output embedding vector.
     """
 
     def __init__(
         self,
-        nb_classes: int = 11,
         channels: int = 128,
         samples: int = 500,
         F1: int = 8,
@@ -74,7 +67,6 @@ class EEGNet(nn.Module):
     ) -> None:
         super().__init__()
 
-        self.nb_classes = nb_classes
         self.channels = channels
         self.samples = samples
 
@@ -106,22 +98,20 @@ class EEGNet(nn.Module):
             nn.Dropout(dropout),
         )
 
-        # --- Classification head ---
         # Compute flattened feature size from the two pooling stages
         t_after_pool = (samples // 4) // 8   # floor divisions
-        self.classifier = nn.Linear(F2 * t_after_pool, nb_classes)
+        self.feature_dim = F2 * t_after_pool
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
         Args:
             x: FloatTensor of shape (B, C, T) or (B, 1, C, T).
         Returns:
-            logits of shape (B, nb_classes).
+            embedding of shape (B, feature_dim).
         """
         if x.dim() == 3:
             x = x.unsqueeze(1)   # (B, C, T) → (B, 1, C, T)
 
         x = self.block1(x)       # (B, F1*D, 1, T//4)
         x = self.block2(x)       # (B, F2,   1, T//32)
-        x = x.flatten(1)         # (B, F2 * T//32)
-        return self.classifier(x)
+        return x.flatten(1)      # (B, feature_dim)
