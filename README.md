@@ -8,16 +8,20 @@ Built with **PyTorch Lightning** for training loops, **Hydra** for configuration
 
 ## Supported Architectures
 
-| Model | Type |
-|-------|------|
-| **EEGNet** | CNN — lightweight baseline |
-| **CTNet** | CNN + Transformer hybrid |
-| **Conformer** | Transformer adapted for EEG |
-| **ATCNet** | TCN + sliding-window attention |
-| **LMDA-Net** | CNN + multi-dimensional attention |
-| **TSception** | Multi-scale CNN |
-| **DGCNN** | Graph Neural Network (dynamic topology) |
-| **RS-STGCN** | Graph Neural Network (regional-synergy) |
+Each model is split into a **backbone** (feature extractor) and a **head** (task-specific output layer). The backbone outputs a fixed-size embedding vector; the head maps it to logits.
+
+| Model | Type | Input |
+|-------|------|-------|
+| **EEGNet** | CNN — lightweight baseline | `(B, C, T)` raw EEG |
+| **CTNet** | CNN + Transformer hybrid | `(B, C, T)` raw EEG |
+| **Conformer** | Transformer adapted for EEG | `(B, C, T)` raw EEG |
+| **ATCNet** | TCN + sliding-window attention | `(B, C, T)` raw EEG |
+| **LMDA-Net** | CNN + multi-dimensional attention | `(B, C, T)` raw EEG |
+| **TSception** | Multi-scale CNN | `(B, C, T)` raw EEG |
+| **DGCNN** | Graph Neural Network (dynamic topology) | `(B, C, F)` DE features |
+| **RS-STGCN** | Graph Neural Network (regional-synergy) | `(B, C, F)` DE features |
+
+`C` = 128 channels, `T` = 500 samples, `F` = 5 DE frequency bands.
 
 ---
 
@@ -105,7 +109,7 @@ docker exec mbd2023 bash -c "cd /workspace && python main.py model=conformer"
 
 ### Override hyperparameters
 ```bash
-docker exec mbd2023 bash -c "cd /workspace && python main.py model=atcnet model.lr=5e-4 trainer.max_epochs=100"
+docker exec mbd2023 bash -c "cd /workspace && python main.py model=atcnet optimizer.lr=5e-4 trainer.max_epochs=100"
 ```
 
 ### Multi-run sweep (all 8 models)
@@ -133,10 +137,18 @@ Configs are organized into Hydra groups — swap any group from the CLI:
 | Group | Options | Default |
 |-------|---------|---------|
 | `model` | `eegnet`, `conformer`, `atcnet`, `dgcnn`, `rs_stgcn`, `lmda_net`, `tsception`, `ctnet` | `eegnet` |
+| `head` | `classification` | `classification` |
 | `preprocessing` | `zscore`, `de_features`, `none` | `zscore` |
 | `trainer` | `default` | `default` |
+| `optimizer` | `adamw`, `adam`, `sgd` | `adamw` |
+| `scheduler` | `none`, `cosine`, `reduce_on_plateau`, `step` | `none` |
 | `wandb` | `default`, `disabled` | `default` |
 | `hydra` | `default`, `sweep`, `debug` | `default` |
+
+Override `num_classes` for a different dataset:
+```bash
+python main.py head.num_classes=4
+```
 
 **Note:** Graph models (`dgcnn`, `rs_stgcn`) automatically use DE features regardless of the `preprocessing` setting.
 
