@@ -1,18 +1,19 @@
 #!/bin/bash
-# Preliminary Experiment Runner for MindBigData2023
-# Runs all 8 baseline models for 100 epochs.
+# Baseline Experiment Runner for MindBigData2023
+# Runs all 8 models for 50 epochs, no early stopping.
 
 echo "=========================================================="
-echo " Starting 100-Epoch Baseline Benchmark"
+echo " Starting 50-Epoch Baseline Benchmark"
 echo "=========================================================="
 echo ""
 
-docker exec mbd2023 bash -c "python main.py --multirun \
+cd /workspace && python main.py --multirun \
     model=eegnet,conformer,atcnet,dgcnn,rs_stgcn,lmda_net,tsception,ctnet \
-    trainer.max_epochs=100 \
-    trainer.patience=20 \
+    trainer.max_epochs=50 \
+    trainer.patience=0 \
+    data.batch_size=64 \
     wandb.enabled=true \
-    experiment.name='baseline'"
+    experiment.name='baseline'
 
 echo ""
 echo "=========================================================="

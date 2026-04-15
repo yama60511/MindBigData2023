@@ -1,9 +1,9 @@
 # ── Trainer configuration ──────────────────────────────────────────
 #
 # Controls training duration, hardware, and stopping behavior.
-# Optimizer and scheduler are separate config groups:
-#   trainer/optimizer → configs/trainer/optimizer/*.yaml
-#   trainer/scheduler → configs/trainer/scheduler/*.yaml
+# Optimizer and scheduler are top-level config groups:
+#   optimizer → configs/optimizer/*.yaml
+#   scheduler → configs/scheduler/*.yaml
 #
 # Override from CLI:  python main.py trainer.max_epochs=200 trainer.patience=20
 

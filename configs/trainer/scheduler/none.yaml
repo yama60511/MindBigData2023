@@ -1,8 +1,0 @@
-# ── Scheduler: None ───────────────────────────────────────────────
-# Constant learning rate throughout training — no decay.
-# Useful for short runs, debugging, or when LR is already well-tuned.
-#
-# Switch from CLI:  python main.py trainer/scheduler=none
-
-name: None
-warmup_epochs: 0

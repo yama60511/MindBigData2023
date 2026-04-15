@@ -1,13 +1,13 @@
 # ── Data configuration ─────────────────────────────────────────────
 #
 # Controls dataset loading and preprocessing.
-# Override from CLI:  python main.py data.batch_size=128 data.num_workers=4
+# Override from CLI:  python main.py data.batch_size=64 data.num_workers=4
 #
 
 hdf5_dir: data/processed/digits_1_40hz   # Path to preprocessed HDF5 dataset files
                                           # → Relative to project root
 
-batch_size: 128           # Number of EEG samples per training batch
+batch_size: 64            # Number of EEG samples per training batch
 
 num_workers: 0            # 0 = load on main thread (safe for Docker)
 
