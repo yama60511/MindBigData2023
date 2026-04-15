@@ -108,7 +108,7 @@ class DGCNN(nn.Module):
             x: (B, C, F) — DE features per channel.
                C = n_channels, F = in_features (5 bands).
         Returns:
-            logits of shape (B, nb_classes).
+            embedding of shape (B, feature_dim).
         """
         adj = self._get_adj()              # (N, N)
 

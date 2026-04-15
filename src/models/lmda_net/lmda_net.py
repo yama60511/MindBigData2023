@@ -146,7 +146,7 @@ class LMDANet(nn.Module):
         Args:
             x: (B, C, T) or (B, 1, C, T).
         Returns:
-            logits (B, nb_classes).
+            embedding (B, feature_dim).
         """
         if x.dim() == 3:
             x = x.unsqueeze(1)

@@ -131,7 +131,7 @@ class RSSTGCN(nn.Module):
         Args:
             x: (B, C, F) — DE features per channel.
         Returns:
-            logits (B, nb_classes).
+            embedding (B, feature_dim).
         """
         B = x.size(0)
 
