@@ -10,7 +10,7 @@ _model_name_: eegnet        # Internal key (do not change)
 nb_classes: 10              # Number of output classes (digits 0-9)
 channels: 128               # Number of EEG channels
 samples: 500                # Number of time samples per trial
-lr: 3e-4                    # Learning rate
+lr: 1e-4                    # Learning rate
 
 # ── Architecture ──
 F1: 32                      # Number of temporal filters (1st conv layer)

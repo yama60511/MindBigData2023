@@ -7,17 +7,9 @@
 hdf5_dir: data/processed/digits_1_40hz   # Path to preprocessed HDF5 dataset files
                                           # → Relative to project root
 
-batch_size: 64            # Number of EEG samples per training batch
-                          # → Larger = faster training but more GPU memory
-                          # → Try 32 if you get CUDA out-of-memory errors
-                          # → Try 128 or 256 if GPU memory allows
+batch_size: 128           # Number of EEG samples per training batch
 
-num_workers: 1            # Number of parallel data loading processes
-                          # → 0 = load on main thread (safe for Docker)
-                          # → Increase to 4-8 if NOT running in Docker (faster)
-                          # → WARNING: values > 0 may crash in Docker due to
-                          #   shared memory limits (RuntimeError: unable to
-                          #   allocate shared memory)
+num_workers: 0            # 0 = load on main thread (safe for Docker)
 
 sfreq: 250                # Sampling frequency of the EEG data in Hz
                           # → Must match the preprocessing pipeline

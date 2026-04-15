@@ -11,7 +11,6 @@ max_epochs: 50            # Maximum number of training epochs
                           # → Early stopping may halt training before this limit
 accelerator: auto         # Hardware backend: "auto", "gpu", "cpu", "tpu"
                           # → "auto" picks GPU if available, else CPU
-patience: 10              # EarlyStopping: stop if val_acc doesn't improve for N epochs
-                          # → Set to 0 to disable early stopping entirely
+patience: 0               # EarlyStopping: 0 = disabled
 fast_dev_run: false       # true = run 1 train + 1 val batch only (for debugging)
 deterministic: true       # true = fully reproducible results (slightly slower)

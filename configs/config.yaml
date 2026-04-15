@@ -25,7 +25,7 @@ defaults:
   - preprocessing: zscore
   - trainer: default
   - trainer/optimizer: adamw
-  - trainer/scheduler: cosine
+  - trainer/scheduler: none
   - wandb: default
   - hydra: default
   - _self_
